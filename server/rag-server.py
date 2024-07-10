@@ -1,5 +1,4 @@
 import flask
-import json
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM,BitsAndBytesConfig
 import colorama
@@ -37,7 +36,6 @@ def chat_completion():
         input_text = tokenizer.apply_chat_template(chat_history[:-1],tokenize=False,add_generation_prompt=False)
         input_text += f"<start_of_turn>model\n{chat_history[-1]['content']}"
     
-    print(input_text)
     input_ids = tokenizer(input_text, add_special_tokens=False,return_tensors="pt").to("cuda")
 
     outputs = model.generate(**input_ids,max_new_tokens=max_new_tokens)
