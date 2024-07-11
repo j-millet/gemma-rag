@@ -10,28 +10,31 @@
     </div>
     {/if}
     <div id="code_block">
-      <code>{text}</code>
+        <pre class={lang}><code>{text}</code></pre>
     </div>
   </div>
   {/if}
 
   <style>
     #code_block{
-      padding: 0.1em;
+      padding: 1em;
     }
     #main_block{
       background-color: #1c1c1cc7;
+      border-radius: 0.25em;
       border: 1px solid white;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       justify-content: center;
       padding: 0;
-      margin: 0.5em;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
     }
     #lang_block{
       border-bottom: 2px solid white;
       padding: 0;
+      text-align: center;
       margin:0;
       width: 100%;
     }
@@ -46,5 +49,9 @@
         font-size: 0.8em;
         margin:0.2em;
         font-family: 'Inter', monospace;
+    }
+    pre{
+      margin: 0;
+      padding: 0;
     }
   </style>

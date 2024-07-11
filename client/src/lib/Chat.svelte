@@ -6,7 +6,6 @@
     let incomplete_message = false
     let model_responding = false
     function fetchModelResponse(chat_history,incomplete_message,max_new_tokens=5) {
-        let message = "";
         return fetch("./chat-completion",
         {
           method:"post",
@@ -37,11 +36,9 @@
 
         do{
             await fetchModelResponse(chat_history,incomplete_message).then(res => {
-                console.log(res)
                 incomplete_message = res.incomplete_message
                 let last_message = chat_history[chat_history.length-1]
                 if (incomplete_message) {
-                    console.log(last_message)
                     if (last_message.role == "user"){
                         chat_history = [...chat_history,{"role":"assistant","content":res.response}]
                     }
@@ -87,8 +84,9 @@
         {/if}
     </div>
     
-    
-    <textarea bind:value={textarea_message} on:keydown={handleKeydown}/>
+    <div id="controls">
+        <textarea bind:value={textarea_message} on:keydown={handleKeydown}/>
+    </div>
 
 </main>
 
@@ -106,11 +104,10 @@
         align-items: flex-start;
         padding: 1em;
         overflow: scroll;
-        width: 80vw;
-        height: 70vh;
+        width: 90vw;
+        height: 75vh;
     }
     .message-user {
-        background-color: hsla(0, 0%, 0%, 0);
         border: 2px solid #00d9ff;
         border-radius: 1em;
         align-self: flex-end;
@@ -121,7 +118,6 @@
         text-align: right;
     }
     .message-assistant{
-        background-color: hsla(0, 0%, 0%, 0);
         border: 2px solid #9900ff;
         border-radius: 1em;
         padding: 1em;
@@ -134,6 +130,7 @@
         width: 50%;
         height: 3%;
         border-radius: 1em;
+        border: 2px solid #fff;
         align-self: flex-end;
         padding: 1em;
         font-size: x-large;
@@ -150,5 +147,11 @@
     }
     #empty-chat-msg {
         font-size: 1.5em;
+    }
+
+    #controls{
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
     }
 </style>
