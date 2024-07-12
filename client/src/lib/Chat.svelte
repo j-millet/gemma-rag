@@ -2,22 +2,8 @@
   import SvelteMarkdown from "svelte-markdown";
   import CodeBlock from "../lib/CodeBlock.svelte";
   let chat_history = [];
-  let textarea_message = "";
   let incomplete_message = false;
   let model_responding = false;
-
-  function sanitize(string) {
-    const map = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#x27;",
-      "/": "&#x2F;",
-    };
-    const reg = /[&<>"'/]/gi;
-    return string.replace(reg, (match) => map[match]);
-  }
 
   function fetchModelResponse(
     chat_history,
@@ -39,17 +25,18 @@
       .then((res) => res.text())
       .then((text) => JSON.parse(text));
   }
-  async function sendMessage() {
+
+  export async function sendMessage(message) {
     if (model_responding) {
       return;
     }
-    if (textarea_message == "") {
+    if (message == "") {
       return;
     }
     model_responding = true;
     chat_history = [
       ...chat_history,
-      { role: "user", content: sanitize(textarea_message) },
+      { role: "user", content: message },
     ];
 
     do {
@@ -78,16 +65,19 @@
           chat_history = [...chat_history, last_message];
         }
       });
-
-      textarea_message = "";
-    } while (incomplete_message);
+    } while (incomplete_message && model_responding);
     model_responding = false;
   }
-  function handleKeydown(event) {
-    if (event.key === "Enter") {
-      sendMessage();
-    }
+
+  export function isModelResponding() {
+    return model_responding;
   }
+  export function stopGenerating() {
+    incomplete_message = false;
+    model_responding = false;
+    console.log(chat_history)
+  }
+  
 </script>
 
 <main>
@@ -107,10 +97,6 @@
         <p id="empty-chat-msg">No messages yet, start chatting!</p>
       </div>
     {/if}
-  </div>
-
-  <div id="controls">
-    <textarea bind:value={textarea_message} on:keydown={handleKeydown} />
   </div>
 </main>
 
@@ -139,7 +125,7 @@
     padding: 1em;
     margin: 0.5em;
     max-width: 30%;
-    text-align: right;
+    text-align: left;
   }
   .message-assistant {
     border: 2px solid #9900ff;
@@ -150,17 +136,7 @@
     align-self: flex-start;
     text-align: left;
   }
-  textarea {
-    width: 50%;
-    height: 3%;
-    border-radius: 1em;
-    border: 2px solid #fff;
-    align-self: flex-end;
-    padding: 1em;
-    font-size: x-large;
-    margin-top: 1em;
-    resize: none;
-  }
+  
   #empty-chat-box {
     display: flex;
     flex-direction: column;
@@ -171,11 +147,5 @@
   }
   #empty-chat-msg {
     font-size: 1.5em;
-  }
-
-  #controls {
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
   }
 </style>

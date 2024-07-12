@@ -72,7 +72,7 @@ if __name__ == "__main__":
         print(colorama.Style.RESET_ALL,end="")
         torch.cuda.empty_cache()
     
-    app.run(port=2137)
+    app.run(host="0.0.0.0",port=2137)
     print("\r",end="")
     print(colorama.Fore.GREEN + "Shutting down...")
     print(colorama.Style.RESET_ALL,end="")
