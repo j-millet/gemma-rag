@@ -4,7 +4,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM,BitsAndBytesConfig
 import colorama
 
 special_tokens = ['<bos>','<eos>','<pad>','<unk>','<start_of_turn>','<end_of_turn>']
-model_name = "google/gemma-2-9b-it"
+model_name = "google/gemma-2b-it"
 
 model = None
 tokenizer = None
@@ -54,10 +54,10 @@ if __name__ == "__main__":
     try:
         torch.cuda.empty_cache()
         quantization_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_use_double_quant=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16
+            load_in_4bit=True,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16
         )
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         model = AutoModelForCausalLM.from_pretrained(
