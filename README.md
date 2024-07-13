@@ -1,8 +1,12 @@
-# Gemma 9b based, local chatbot with RAG functionality
+# Gemma-based, local chatbot with RAG functionality
 
 ## Implemented for now
 * Backend server
 * Frontend basic chat
+* File uploads and RAG functionality for multiple connected users
+
+## TODO
+* Improve context retrieval, so that it ommits irrelevant information.
 
 ## To run
 * Clone repo
