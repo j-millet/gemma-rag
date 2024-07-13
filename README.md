@@ -1,4 +1,4 @@
-# Gemma 9b based, local chatbot with RAG functionality
+# Gemma-based, local chatbot with RAG functionality
 
 ## Implemented for now
 * Backend server
