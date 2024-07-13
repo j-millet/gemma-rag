@@ -1,15 +1,23 @@
 import flask
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM,BitsAndBytesConfig
+import os
 import colorama
+import secrets
+from rag_model import rag_model
+from vector_db_manager import vector_db_manager
 
-special_tokens = ['<bos>','<eos>','<pad>','<unk>','<start_of_turn>','<end_of_turn>']
 model_name = "google/gemma-2b-it"
 
 model = None
-tokenizer = None
+db_manager = None
 
 app = flask.Flask(__name__)
+app.config["UPLOAD_FOLDER"] = "uploads/"
+app.secret_key = "d3f031e1abe2f7520ca483fec0323b91564fda8ef8f852b7916078ff819791f1"
+
+def get_val(d,key,default):
+    if key in d:
+        return d[key]
+    return default
 
 @app.route("/")
 def base():
@@ -22,59 +30,85 @@ def home(path):
 @app.route("/chat-completion", methods=["POST"])
 def chat_completion():
     data = flask.request.json
-    chat_history = data["chat_history"]
-    max_new_tokens = 100
-    if "max_new_tokens" in data: max_new_tokens = data["max_new_tokens"]
 
-    incomplete_message=False
-    if "incomplete_message" in data: incomplete_message = data["incomplete_message"]
-
-    input_text = ""
-    if not incomplete_message:
-        input_text = tokenizer.apply_chat_template(chat_history,tokenize=False,add_generation_prompt=True)
-    else:
-        input_text = tokenizer.apply_chat_template(chat_history[:-1],tokenize=False,add_generation_prompt=False)
-        input_text += f"<start_of_turn>model\n{chat_history[-1]['content']}"
+    if "chat_history" not in data:
+        return flask.jsonify({"error": "No chat history provided"}), 400
     
-    input_ids = tokenizer(input_text, add_special_tokens=False,return_tensors="pt").to("cuda")
+    chat_history = data["chat_history"]
 
-    outputs = model.generate(**input_ids,max_new_tokens=max_new_tokens)
-    text = tokenizer.decode(outputs[0])
+    max_new_tokens = get_val(data,"max_new_tokens",10)
+    incomplete_message = get_val(data,"incomplete_message",False)
+    temperature = get_val(data,"temperature",0.1)
 
-    model_message = text.replace(input_text,"")
-    incomplete_message = not "<eos>" in model_message
-    for special_token in special_tokens:
-        model_message = model_message.replace(special_token,"")
+    model_message,incomplete_message = model.make_prediction(chat_history,incomplete_message,max_new_tokens,temperature)
 
     return flask.jsonify({"response": model_message,"incomplete_message":incomplete_message})
 
-if __name__ == "__main__":
-    print(colorama.Fore.YELLOW + f"Loading {model_name}...")
-    print(colorama.Style.RESET_ALL,end="")
-    try:
-        torch.cuda.empty_cache()
-        quantization_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16
-        )
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            device_map="cuda",
-            quantization_config=quantization_config
-        )
-        print(colorama.Fore.GREEN + "Model loaded. Starting server...")
-        print(colorama.Style.RESET_ALL,end="")
-    except Exception as e:
-        print(colorama.Fore.RED + f"Jesus fucking christ what is happening: {e}")
-        print(colorama.Style.RESET_ALL,end="")
-        torch.cuda.empty_cache()
+@app.route("/context-retrieval", methods=["POST"])
+def context_retrieval():
+    data = flask.request.json
+    user_id = flask.session.get("user_id",-1)
+    print(f"{user_id} context retrieval")
     
+    if "query" not in data:
+        return flask.jsonify({"error": "No query provided"}), 400
+    
+    query = data["query"]
+
+    top_k = get_val(data,"top_k",5)
+
+    context = db_manager.get_context_as_text(user_id,query,top_k)
+
+    return flask.jsonify({"context": context})
+
+@app.route("/open-session", methods=["POST"])
+def open_session():
+    user_id = secrets.token_urlsafe(16)
+    flask.session["user_id"] = user_id
+    print(f"{user_id} open")
+    return flask.jsonify({"success": True})
+
+@app.route("/close-session", methods=["POST"])
+def close_session():
+    print(f"{flask.session.get('user_id')} close")
+    os.system(f"rm -r {os.path.dirname(__file__)}/../uploads/{flask.session.get('user_id',-1)}")
+    flask.session.pop("user_id",None)
+    return flask.jsonify({"success": True})
+
+@app.route("/upload", methods=["POST"])
+def upload_file():
+    if "file" not in flask.request.files:
+        return flask.jsonify({"error": "No file part"})
+    file = flask.request.files["file"]
+    
+    if file.filename == "":
+        return flask.jsonify({"error": "No file selected"})
+    if file:
+        user_id = str(flask.session.get("user_id",-1))
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], user_id, file.filename)
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        file.save(filepath)
+
+        db_manager.add_user_store(user_id,[filepath])
+        return flask.jsonify({"success": True, "filepath": filepath})
+
+    return flask.jsonify({"error": "Something went wrong"}), 500
+
+if __name__ == "__main__":
+    model = rag_model(model_name)
+    db_manager = vector_db_manager()
     app.run(host="0.0.0.0",port=2137)
+
     print("\r",end="")
+    print(colorama.Fore.GREEN + "Wiping file cache...")
+    print(colorama.Style.RESET_ALL,end="")
+
+    os.system(f"rm -r {os.path.dirname(__file__)}/../uploads && mkdir {os.path.dirname(__file__)}/../uploads")
+
     print(colorama.Fore.GREEN + "Shutting down...")
     print(colorama.Style.RESET_ALL,end="")
-    torch.cuda.empty_cache()
-    
+
+    model.unload()
+
+    print(colorama.Fore.GREEN + "Done")
+    print(colorama.Style.RESET_ALL,end="")

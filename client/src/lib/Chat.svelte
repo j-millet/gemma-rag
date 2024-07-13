@@ -33,26 +33,44 @@
     if (message == "") {
       return;
     }
+    let context = await fetch("./context-retrieval", {
+      method: "post",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: message }),
+    }).then((res) => res.json()).then((res) => res.context);
+
     model_responding = true;
     chat_history = [
       ...chat_history,
       { role: "user", content: message },
-    ];
+    ]; 
 
+    let working_chat_history = structuredClone(chat_history);
+    if (context){
+      working_chat_history[working_chat_history.length - 1].content = "With provided context: " + context + "\nAnswer the question:\n" + working_chat_history[working_chat_history.length - 1].content;
+    }
+    console.log(working_chat_history)
+    console.log(chat_history)
     do {
-      await fetchModelResponse(chat_history, incomplete_message).then((res) => {
+      await fetchModelResponse(working_chat_history, incomplete_message).then((res) => {
         incomplete_message = res.incomplete_message;
-        let last_message = chat_history[chat_history.length - 1];
+        let last_message = working_chat_history[working_chat_history.length - 1];
         if (incomplete_message) {
           if (last_message.role == "user") {
             chat_history = [
               ...chat_history,
               { role: "assistant", content: (res.response) },
             ];
+            working_chat_history = [...working_chat_history, { role: "assistant", content: (res.response) }];
           } else {
             last_message.content += (res.response);
             chat_history.pop();
             chat_history = [...chat_history, last_message];
+            working_chat_history.pop();
+            working_chat_history = [...working_chat_history, last_message];
           }
         } else if (chat_history[chat_history.length - 1].role == "user") {
           chat_history = [
