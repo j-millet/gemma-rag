@@ -2,17 +2,22 @@ import flask
 import os
 import colorama
 import secrets
+import json
 from rag_model import rag_model
 from vector_db_manager import vector_db_manager
 
-model_name = "google/gemma-2b-it"
+cfg = dict()
+with open(os.path.join(os.path.dirname(__file__),"config.json"),"r") as f:
+    cfg = json.loads(f)
+
+model_name = cfg["model_name"]
 
 model = None
 db_manager = None
 
 app = flask.Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads/"
-app.secret_key = "d3f031e1abe2f7520ca483fec0323b91564fda8ef8f852b7916078ff819791f1"
+app.secret_key = cfg["flask_secret_key"]
 
 def get_val(d,key,default):
     if key in d:
