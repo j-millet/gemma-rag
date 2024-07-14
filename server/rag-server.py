@@ -2,6 +2,7 @@ import flask
 import os
 import colorama
 import secrets
+
 import json
 from rag_model import rag_model
 from vector_db_manager import vector_db_manager
@@ -12,12 +13,14 @@ with open(os.path.join(os.path.dirname(__file__),"config.json"),"r") as f:
 
 model_name = cfg["model_name"]
 
+
 model = None
 db_manager = None
 
 app = flask.Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads/"
 app.secret_key = cfg["flask_secret_key"]
+
 
 def get_val(d,key,default):
     if key in d:
@@ -54,7 +57,7 @@ def context_retrieval():
     data = flask.request.json
     user_id = flask.session.get("user_id",-1)
     print(f"{user_id} context retrieval")
-    
+
     if "query" not in data:
         return flask.jsonify({"error": "No query provided"}), 400
     
