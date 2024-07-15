@@ -1,15 +1,40 @@
 <script>
-  import SvelteMarkdown from "svelte-markdown";
-  import CodeBlock from "../lib/CodeBlock.svelte";
+
+  import ChatMessage from "./ChatMessage.svelte";
+  import ModelMessage from "./ModelMessage.svelte";
+
   let chat_history = [];
-  let incomplete_message = false;
   let model_responding = false;
 
+  let context_top_k = 5;
+  let context_max_cosine = 0.7;
+
+  export function setContextTopK(k) {
+    if (k < 1) {
+      k = 1;
+    }
+    context_top_k = k;
+  }
+  export function setContextMaxCosine(cosine) {
+    cosine = Math.min(1, Math.max(0, cosine));
+    context_max_cosine = cosine;
+  }
+
+  function extractCoreChatHistory(extended_chat_history) {
+    let core_chat_history = [];
+    for (let i = 0; i < extended_chat_history.length; i++) {
+      core_chat_history.push({role:extended_chat_history[i].role,content:extended_chat_history[i].content});
+    }
+    return core_chat_history;
+  }
+
   function fetchModelResponse(
-    chat_history,
+    input_chat_history,
     incomplete_message,
-    max_new_tokens = 10
+    max_new_tokens = 10,
+    temperature = 0.1
   ) {
+    console.log(input_chat_history);
     return fetch("./chat-completion", {
       method: "post",
       headers: {
@@ -17,13 +42,28 @@
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        chat_history: chat_history,
+        chat_history: input_chat_history,
         max_new_tokens: max_new_tokens,
         incomplete_message: incomplete_message,
+        temperature: temperature,
       }),
     })
       .then((res) => res.text())
       .then((text) => JSON.parse(text));
+  }
+
+  async function fetchContext(query) {
+    let context = await fetch("./context-retrieval", {
+      method: "post",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: query, top_k: context_top_k, max_cosine: context_max_cosine }),
+    })
+      .then((res) => res.json())
+      .then((res) => res.context);
+    return context;
   }
 
   export async function sendMessage(message) {
@@ -33,69 +73,67 @@
     if (message == "") {
       return;
     }
-    let context = await fetch("./context-retrieval", {
-      method: "post",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ query: message }),
-    }).then((res) => res.json()).then((res) => res.context);
+
 
     model_responding = true;
-    chat_history = [
-      ...chat_history,
-      { role: "user", content: message },
-    ]; 
 
+    let context = await fetchContext(message);
+
+    chat_history = [...chat_history, { role: "user", content: message, meta:{} },{ role: "assistant", content: "", meta:{finishedMessage:false,context:context}}];
     let working_chat_history = structuredClone(chat_history);
-    if (context){
-      working_chat_history[working_chat_history.length - 1].content = "With provided context: " + context + "\nAnswer the question:\n" + working_chat_history[working_chat_history.length - 1].content;
+
+  
+    let text_context = "";
+    for (let i = 0; i < context.length; i++) {
+      text_context += context[i].content + "\n";
     }
-    console.log(working_chat_history)
-    console.log(chat_history)
-    do {
-      await fetchModelResponse(working_chat_history, incomplete_message).then((res) => {
-        incomplete_message = res.incomplete_message;
-        let last_message = working_chat_history[working_chat_history.length - 1];
-        if (incomplete_message) {
-          if (last_message.role == "user") {
-            chat_history = [
-              ...chat_history,
-              { role: "assistant", content: (res.response) },
-            ];
-            working_chat_history = [...working_chat_history, { role: "assistant", content: (res.response) }];
-          } else {
-            last_message.content += (res.response);
-            chat_history.pop();
-            chat_history = [...chat_history, last_message];
-            working_chat_history.pop();
-            working_chat_history = [...working_chat_history, last_message];
-          }
-        } else if (chat_history[chat_history.length - 1].role == "user") {
-          chat_history = [
-            ...chat_history,
-            { role: "assistant", content: (res.response)},
-          ];
-        } else {
-          last_message.content += (res.response);
-          chat_history.pop();
-          chat_history = [...chat_history, last_message];
-        }
-      });
-    } while (incomplete_message && model_responding);
-    model_responding = false;
+    if (text_context) {
+      working_chat_history[working_chat_history.length - 2].content =
+        "With provided context: " +
+        text_context +
+        "\nRespond to the prompt  (cite sources if possible):\n" +
+        message;
+    }
+
+    let last_message = chat_history[chat_history.length - 1];
+    let last_message_working = working_chat_history[working_chat_history.length - 1];
+
+    while(model_responding){
+      let model_response = await fetchModelResponse(
+        extractCoreChatHistory(working_chat_history),
+        !last_message.meta.finishedMessage
+      )
+
+      last_message.content += model_response.response;
+      last_message.meta.finishedMessage = !model_response.incomplete_message;
+      
+
+      chat_history.pop();
+      chat_history = [...chat_history,last_message];
+
+      last_message_working.content += model_response.response;
+      last_message_working.meta.finishedMessage = !model_response.incomplete_message;
+
+      working_chat_history.pop();
+      working_chat_history = [...working_chat_history,last_message_working];
+      
+      
+      if (!model_response.incomplete_message) {
+        model_responding = false;
+      }
+    }
+
+    last_message.meta.finishedMessage = true;
+      chat_history.pop();
+      chat_history = [...chat_history,last_message];
   }
 
   export function isModelResponding() {
     return model_responding;
   }
   export function stopGenerating() {
-    incomplete_message = false;
     model_responding = false;
-    console.log(chat_history)
   }
-  
 </script>
 
 <main>
@@ -103,10 +141,11 @@
     {#if chat_history}
       {#each chat_history.toReversed() as message}
         <div class="message-{message.role}">
-          <SvelteMarkdown
-            source={message.content}
-            renderers={{ code: CodeBlock }}
-          />
+          {#if message.role=="assistant"}
+            <ModelMessage content={message.content} context={message.meta.context} finished={message.meta.finishedMessage} on:stopGeneration={stopGenerating}/>
+          {:else}
+            <ChatMessage content={message.content} />
+          {/if}
         </div>
       {/each}
     {/if}
@@ -154,7 +193,7 @@
     align-self: flex-start;
     text-align: left;
   }
-  
+
   #empty-chat-box {
     display: flex;
     flex-direction: column;

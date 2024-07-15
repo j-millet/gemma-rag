@@ -62,10 +62,10 @@ def context_retrieval():
         return flask.jsonify({"error": "No query provided"}), 400
     
     query = data["query"]
-
     top_k = get_val(data,"top_k",5)
+    max_cosine = get_val(data,"max_cosine",0.6)
 
-    context = db_manager.get_context_as_text(user_id,query,top_k)
+    context = db_manager.get_context(user_id,query,top_k,max_cosine=max_cosine)
 
     return flask.jsonify({"context": context})
 

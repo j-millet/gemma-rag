@@ -6,6 +6,8 @@
   let chat=null;
   let chatInput=null
 
+  let context_cosine = 0.7;
+
   let uploaded_files = [];
 
   onMount(()=>{
@@ -48,10 +50,15 @@
   <div id="chat-holder">
     <Chat bind:this={chat}/>
     <div id="controls">
-      <p style="padding:0.5em">{uploaded_files}</p>
+      <p>Max distance = {Math.round(context_cosine*100)/100}</p>
+      <div>
+        <input type="range" min="0.3" max="1" step="0.01" bind:value={context_cosine} on:change={() => {chat.setContextMaxCosine(context_cosine)}} />
+      </div>
+      <div>
+        <p style="padding:0.5em">{uploaded_files}</p>
+      </div>
       <input type="file" bind:this={file_input} />
       <button on:click={uploadFile}>Upload File</button>
-      <button on:click={handleClick}>Stop Generation</button>
       <ChatInput width="40vw" bind:this={chatInput} on:send={handleMessage}/>
     </div>
   </div> 
