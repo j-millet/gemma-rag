@@ -54,11 +54,11 @@
     align-self: flex-end;
     padding: 1em;
     font-size: x-large;
-    margin-top: 1em;
+    margin: 1em;
     resize: none;
   }
   textarea:focus {
     outline:none;
     border: 2px solid #00d9ff;
-    }
+   }
 </style>

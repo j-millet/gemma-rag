@@ -98,7 +98,7 @@ def upload_file():
         file.save(filepath)
 
         db_manager.add_user_store(user_id,[filepath])
-        return flask.jsonify({"success": True, "filepath": filepath})
+        return flask.jsonify({"success": True, "filepath": file.filename})
 
     return flask.jsonify({"error": "Something went wrong"}), 500
 

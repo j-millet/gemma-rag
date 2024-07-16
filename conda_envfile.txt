@@ -278,6 +278,7 @@ pyarrow=14.0.2=py312hb107042_0
 pyasn1=0.6.0=pypi_0
 pyasn1-modules=0.4.0=pypi_0
 pybind11-abi=5=hd3eb1b0_0
+pyconfig=3.2.3=pypi_0
 pycparser=2.21=pyhd3eb1b0_0
 pydantic=2.5.3=py312h06a4308_0
 pydantic-core=2.14.6=py312hb02cf49_0
@@ -296,6 +297,7 @@ python-multipart=0.0.9=pypi_0
 python-tzdata=2023.3=pyhd3eb1b0_0
 python-xxhash=2.0.2=py312h5eee18b_1
 python_abi=3.12=4_cp312
+pytool=5.0.0=pypi_0
 pytorch=2.3.1=py3.12_cuda12.1_cudnn8.9.2_0
 pytorch-cuda=12.1=ha16c6d3_5
 pytorch-mutex=1.0=cuda
@@ -324,6 +326,7 @@ send2trash=1.8.2=py312h06a4308_0
 sentence-transformers=3.0.1=pypi_0
 setuptools=69.5.1=py312h06a4308_0
 shellingham=1.5.4=pypi_0
+simplejson=3.19.2=pypi_0
 sip=6.7.12=py312h6a678d5_0
 six=1.16.0=pyhd3eb1b0_1
 snappy=1.1.10=h6a678d5_1

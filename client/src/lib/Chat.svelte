@@ -66,35 +66,36 @@
     return context;
   }
 
-  export async function sendMessage(message) {
+  export async function sendMessage(message,use_context=true) {
     if (model_responding) {
       return;
     }
     if (message == "") {
       return;
     }
-
-
+    chat_history = [...chat_history, { role: "user", content: message, meta:{} }];
     model_responding = true;
 
-    let context = await fetchContext(message);
+    let context = [];
+    let text_context = "";
+    if (use_context){
+      context = await fetchContext(message);
+      
+      for (let i = 0; i < context.length; i++) {
+        text_context += context[i].content + "\n";
+      }
+    }
 
-    chat_history = [...chat_history, { role: "user", content: message, meta:{} },{ role: "assistant", content: "", meta:{finishedMessage:false,context:context}}];
+    chat_history = [...chat_history,{ role: "assistant", content: "", meta:{finishedMessage:false,context:context}}];
     let working_chat_history = structuredClone(chat_history);
 
-  
-    let text_context = "";
-    for (let i = 0; i < context.length; i++) {
-      text_context += context[i].content + "\n";
+    if(use_context){
+    working_chat_history[working_chat_history.length - 2].content =
+      "Using only the provided context (if context is empty DO NOT use your own knowledge): " +
+      text_context +
+      "\nRespond to the prompt (please cite sources):\n" +
+      message;
     }
-    if (text_context) {
-      working_chat_history[working_chat_history.length - 2].content =
-        "With provided context: " +
-        text_context +
-        "\nRespond to the prompt  (cite sources if possible):\n" +
-        message;
-    }
-
     let last_message = chat_history[chat_history.length - 1];
     let last_message_working = working_chat_history[working_chat_history.length - 1];
 

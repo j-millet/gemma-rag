@@ -1,14 +1,15 @@
 <script>
   import Chat from './lib/Chat.svelte';  
   import ChatInput from './lib/ChatInput.svelte';
-	import { onMount } from 'svelte';
+  import FileManager from './lib/FileManager.svelte';
+
+  import { onMount } from 'svelte';
 
   let chat=null;
   let chatInput=null
 
   let context_cosine = 0.7;
 
-  let uploaded_files = [];
 
   onMount(()=>{
     startSession();
@@ -27,41 +28,24 @@
       chatInput.clear();
     }
   }
-  function handleClick(){
-    chat.stopGenerating();
-  }
-  let file_input = null;
 
-    async function uploadFile() {
-        const formData = new FormData();
-        formData.append('file', file_input.files[0]);
-        console.log(formData);
-        const filepath = await fetch('./upload', {
-            method: 'POST',
-            body: formData
-        }).then((res) => res.json()).then((res) => res.filepath);
-
-        uploaded_files = [...uploaded_files, filepath.split('/').pop()];
-        
-    }
+  
 </script>
 
 <main>
   <div id="chat-holder">
     <Chat bind:this={chat}/>
-    <div id="controls">
-      <p>Max distance = {Math.round(context_cosine*100)/100}</p>
-      <div>
-        <input type="range" min="0.3" max="1" step="0.01" bind:value={context_cosine} on:change={() => {chat.setContextMaxCosine(context_cosine)}} />
-      </div>
-      <div>
-        <p style="padding:0.5em">{uploaded_files}</p>
-      </div>
-      <input type="file" bind:this={file_input} />
-      <button on:click={uploadFile}>Upload File</button>
-      <ChatInput width="40vw" bind:this={chatInput} on:send={handleMessage}/>
-    </div>
+    
   </div> 
+  <div id="controls">
+    <FileManager />
+    <p>Max distance = {Math.round(context_cosine*100)/100}</p>
+    <div>
+      <input type="range" min="0.3" max="1" step="0.01" bind:value={context_cosine} on:change={() => {chat.setContextMaxCosine(context_cosine)}} />
+    </div>
+    
+    <ChatInput width="40vw" bind:this={chatInput} on:send={handleMessage}/>
+  </div>
 </main>
 
 <style>
@@ -77,7 +61,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    overflow: hidden;
   }
   
   #chat-holder {
@@ -85,20 +70,15 @@
   }
 
   #controls {
+    margin:0;
+    border-top: 1px solid white;
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
     width: 100%;
-  }
-
-  button {
-    background-color: rbga(0, 0, 0, 0);
-    color: white;
-    border: none;
-    border-radius: 1em;
-    margin-right: 1em;
-    font-size: x-large;
+    height: 10%;
+    justify-self: flex-end;
   }
 
 </style>
