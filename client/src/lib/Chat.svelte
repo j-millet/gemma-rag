@@ -93,7 +93,7 @@
     working_chat_history[working_chat_history.length - 2].content =
       "Using only the provided context (if context is empty DO NOT use your own knowledge): " +
       text_context +
-      "\nRespond to the prompt (please cite sources):\n" +
+      "\nRespond to the prompt (please cite sources, if available in context):\n" +
       message;
     }
     let last_message = chat_history[chat_history.length - 1];
