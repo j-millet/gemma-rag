@@ -15,4 +15,4 @@
 * (You may need to login to huggingface via [HuggingFace CLI](https://huggingface.co/docs/huggingface_hub/main/en/guides/cli) and be granted access to gemma if you haven't received it before.)
 
 ## Screenshots
-![](https://cdn.discordapp.com/attachments/949452484231954452/1261083944489717770/image.png?ex=6691ab72&is=669059f2&hm=7a6b18116d4f8208122f6feebb64fb227b67462c2882d6ac7ef3b020631909e7&)
+![](https://cdn.discordapp.com/attachments/949452484231954452/1262731079778045982/image.png?ex=6697a975&is=669657f5&hm=5594b11b9c3a1c392586292a8ea195d14ba5f6b78c9cb838a48ca1372a763c6f&)
