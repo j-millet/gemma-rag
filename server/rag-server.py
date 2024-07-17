@@ -1,6 +1,7 @@
 import flask
 import os
 import colorama
+from utils import *
 import secrets
 
 import json
@@ -18,14 +19,8 @@ model = None
 db_manager = None
 
 app = flask.Flask(__name__)
-app.config["UPLOAD_FOLDER"] = "uploads/"
+app.config["UPLOAD_FOLDER"] = f"{os.path.dirname(__file__)}/../uploads/"
 app.secret_key = cfg["flask_secret_key"]
-
-
-def get_val(d,key,default):
-    if key in d:
-        return d[key]
-    return default
 
 @app.route("/")
 def base():
@@ -79,8 +74,14 @@ def open_session():
 @app.route("/close-session", methods=["POST"])
 def close_session():
     print(f"{flask.session.get('user_id')} close")
-    os.system(f"rm -r {os.path.dirname(__file__)}/../uploads/{flask.session.get('user_id',-1)}")
+    uid=flask.session.get("user_id",-1)
+    path = f"{os.path.dirname(__file__)}/../uploads/{uid}"
     flask.session.pop("user_id",None)
+
+    if os.path.exists(path):
+        rm_recursive(path)
+        db_manager.delete_user_store(uid)
+    
     return flask.jsonify({"success": True})
 
 @app.route("/upload", methods=["POST"])
@@ -91,6 +92,7 @@ def upload_file():
     
     if file.filename == "":
         return flask.jsonify({"error": "No file selected"})
+    
     if file:
         user_id = str(flask.session.get("user_id",-1))
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], user_id, file.filename)
@@ -111,7 +113,8 @@ if __name__ == "__main__":
     print(colorama.Fore.GREEN + "Wiping file cache...")
     print(colorama.Style.RESET_ALL,end="")
 
-    os.system(f"rm -r {os.path.dirname(__file__)}/../uploads && mkdir {os.path.dirname(__file__)}/../uploads")
+    rm_recursive(f"{os.path.dirname(__file__)}/../uploads")
+    os.makedirs(f"{os.path.dirname(__file__)}/../uploads",exist_ok=True)
 
     print(colorama.Fore.GREEN + "Shutting down...")
     print(colorama.Style.RESET_ALL,end="")
