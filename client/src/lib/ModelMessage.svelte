@@ -42,7 +42,9 @@
     display: flex;
     justify-content: flex-start;
     margin-top: 0.5em;
+    padding:0.5em;
     height: 2em;
+    border-top: 1px solid white;
   }
 
   #stopButton {

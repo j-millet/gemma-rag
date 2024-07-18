@@ -7,7 +7,7 @@
   let model_responding = false;
 
   let context_top_k = 5;
-  let context_max_cosine = 0.7;
+  let context_max_cosine = 1;
 
   export function setContextTopK(k) {
     if (k < 1) {

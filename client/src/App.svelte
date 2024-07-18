@@ -10,6 +10,8 @@
 
   let context_cosine = 1;
 
+  let use_context = false;
+
 
   onMount(()=>{
     startSession();
@@ -24,7 +26,7 @@
 
   function handleMessage(event){
     if(!chat.isModelResponding()){
-      chat.sendMessage(event.detail.message);
+      chat.sendMessage(event.detail.message,use_context);
       chatInput.clear();
     }
   }
@@ -38,7 +40,7 @@
     
   </div> 
   <div id="controls">
-    <FileManager />
+    <FileManager on:contextAvailable={()=>{use_context=true}}/>
     
     
     <ChatInput width="40vw" bind:this={chatInput} on:send={handleMessage}/>
@@ -68,7 +70,7 @@
 
   #controls {
     margin:0;
-    border-top: 1px solid white;
+    background-color: rgba(0,0,0,0.1);
     display: flex;
     flex-direction: row;
     justify-content: flex-end;

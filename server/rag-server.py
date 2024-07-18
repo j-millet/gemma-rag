@@ -103,6 +103,22 @@ def upload_file():
         return flask.jsonify({"success": True, "filepath": file.filename})
 
     return flask.jsonify({"error": "Something went wrong"}), 500
+@app.route("/delete", methods=["POST"])
+def delete_file():
+    data = flask.request.json
+    if "filename" not in data:
+        return flask.jsonify({"error": "No filename provided"})
+    
+    user_id = str(flask.session.get("user_id",-1))
+    filename = data["filename"]
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], user_id, filename)
+
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        db_manager.delete_user_file(user_id,filepath)
+        return flask.jsonify({"success": True})
+    
+    return flask.jsonify({"error": "File not found"}), 404
 
 if __name__ == "__main__":
     model = rag_model(model_name)
