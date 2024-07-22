@@ -2,11 +2,14 @@
   import Chat from './lib/Chat.svelte';  
   import ChatInput from './lib/ChatInput.svelte';
   import FileManager from './lib/FileManager.svelte';
+  import SettingsPanel from './lib/SettingsPanel.svelte';
 
   import { onMount } from 'svelte';
 
   let chat=null;
-  let chatInput=null
+  let chatInput=null;
+
+  let settings = null;
 
   let context_cosine = 1;
 
@@ -15,6 +18,7 @@
 
   onMount(()=>{
     startSession();
+    chat.setContextPromptTemplate(settings.getContextPromptTemplate());
   })
 
   window.onbeforeunload = function() {
@@ -41,9 +45,9 @@
   </div> 
   <div id="controls">
     <FileManager on:contextAvailable={()=>{use_context=true}}/>
-    
-    
+    <SettingsPanel bind:this={settings} on:contextPromptChanged={() => {chat.setContextPromptTemplate(settings.getContextPromptTemplate())}}/>
     <ChatInput width="40vw" bind:this={chatInput} on:send={handleMessage}/>
+    
   </div>
 </main>
 

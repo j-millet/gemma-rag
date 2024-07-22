@@ -9,6 +9,12 @@
   let context_top_k = 5;
   let context_max_cosine = 1;
 
+  let context_prompt_template = ""
+
+  export function setContextPromptTemplate(template) {
+    context_prompt_template = template;
+  }
+
   export function setContextTopK(k) {
     if (k < 1) {
       k = 1;
@@ -90,11 +96,7 @@
     let working_chat_history = structuredClone(chat_history);
 
     if(use_context){
-    working_chat_history[working_chat_history.length - 2].content =
-      "Using only the provided context (if context is empty DO NOT use your own knowledge): " +
-      text_context +
-      "\nRespond to the prompt (please cite sources, if available in context):\n" +
-      message;
+      working_chat_history[working_chat_history.length - 2].content = context_prompt_template.replace("<context>", text_context).replace("<prompt>", message);
     }
     let last_message = chat_history[chat_history.length - 1];
     let last_message_working = working_chat_history[working_chat_history.length - 1];

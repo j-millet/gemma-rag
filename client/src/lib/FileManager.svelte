@@ -71,8 +71,10 @@
     <button title="View uploaded files" on:click={toggleShowList}>{(showList)?"▼":"▲"}</button>
     <input type="file" bind:this={file_input} on:change={()=>{selected_file = file_input.files[0]}} />
     <button title="Choose file" on:click={() => {file_input.click()}}>+</button>
-    <button title="Upload" on:click={uploadFile}>↥</button>
-    <p>{(selected_file)? "Upload: "+selected_file.name:""}</p>
+    {#if selected_file}
+        <button title="Upload" on:click={uploadFile}>↥</button>
+        <p>{"Upload: "+selected_file.name}</p>
+    {/if}
 </div>
 
 <style>
