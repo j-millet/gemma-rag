@@ -3,7 +3,6 @@
 ## To run
 ##### (confirmed working on linux (ubuntu 22.04), windows may need additional pip packages)
 Prerequisites: python, npm, conda or other venv solution (not obligatory but highly encouraged)
-* Clone repo
 * Run ```pip install -r requirements.txt``` inside ```/server```
 * Run ```npm install && npm run build``` inside ```/client```
 * Generate own secret key, change ```config-template.json``` and rename to ```config.json``` inside ```/server```
