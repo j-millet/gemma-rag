@@ -1,5 +1,5 @@
 <script>
-
+    import {clickOutside} from './clickOutside.js';
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -47,6 +47,9 @@
             return;
         }
         uploaded_files = uploaded_files.filter((f)=>f!==file);    
+        if (uploaded_files.length === 0){
+            dispatch("contextUnavailable");
+        }
     }
 </script>
 
@@ -74,6 +77,7 @@
     {#if selected_file}
         <button title="Upload" on:click={uploadFile}>↥</button>
         <p>{"Upload: "+selected_file.name}</p>
+        <button title="Clear" on:click={()=>{selected_file = null; file_input.value = null}}>✘</button>
     {/if}
 </div>
 

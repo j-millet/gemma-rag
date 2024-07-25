@@ -56,6 +56,7 @@
     font-size: x-large;
     margin: 1em;
     resize: none;
+    height: 100%;
   }
   textarea:focus {
     outline:none;

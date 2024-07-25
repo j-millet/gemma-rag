@@ -11,14 +11,15 @@
 
   let settings = null;
 
-  let context_cosine = 1;
-
   let use_context = false;
 
 
   onMount(()=>{
     startSession();
     chat.setContextPromptTemplate(settings.getContextPromptTemplate());
+    chat.setTemperature(settings.getTemperature());
+    chat.setContextChunksCount(settings.getContextChunksCount());
+    use_context = settings.useContext();
   })
 
   window.onbeforeunload = function() {
@@ -44,8 +45,17 @@
     
   </div> 
   <div id="controls">
-    <FileManager on:contextAvailable={()=>{use_context=true}}/>
-    <SettingsPanel bind:this={settings} on:contextPromptChanged={() => {chat.setContextPromptTemplate(settings.getContextPromptTemplate())}}/>
+    <FileManager 
+      on:contextAvailable={()=>{settings.setUseContext(true)}}
+      on:contextUnavailable={()=>{settings.setUseContext(false)}}
+    />
+    <SettingsPanel 
+      bind:this={settings} 
+      on:contextPromptChanged={() => {chat.setContextPromptTemplate(settings.getContextPromptTemplate())}}
+      on:temperatureChanged={() => {chat.setTemperature(settings.getTemperature())}}
+      on:contextChunksCountChanged={() => {chat.setContextChunksCount(settings.getContextChunksCount())}}
+      on:useContextChanged={() => {use_context = settings.useContext()}}
+    />
     <ChatInput width="40vw" bind:this={chatInput} on:send={handleMessage}/>
     
   </div>

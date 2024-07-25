@@ -20,6 +20,7 @@
 </script>
 
 <ChatMessage {content} />
+{#if !finished || context.length >0}
 <div id="message-controls">
   {#if context.length > 0}
     <button on:click={toggleContext}>View context</button>
@@ -28,6 +29,7 @@
     <button id="stopButton" on:click={fireStop}>▢</button>
   {/if}
 </div>
+{/if}
 {#if viewContext}
   <div id="context-box">
     {#each context as item}

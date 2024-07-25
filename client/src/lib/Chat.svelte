@@ -8,6 +8,7 @@
 
   let context_top_k = 5;
   let context_max_cosine = 1;
+  let temperature = 0.1;
 
   let context_prompt_template = ""
 
@@ -15,7 +16,7 @@
     context_prompt_template = template;
   }
 
-  export function setContextTopK(k) {
+  export function setContextChunksCount(k) {
     if (k < 1) {
       k = 1;
     }
@@ -24,6 +25,11 @@
   export function setContextMaxCosine(cosine) {
     cosine = Math.min(1, Math.max(0, cosine));
     context_max_cosine = cosine;
+  }
+
+  export function setTemperature(temp) {
+    temp = Math.min(2, Math.max(0, temp));
+    temperature = temp;
   }
 
   function extractCoreChatHistory(extended_chat_history) {
@@ -38,9 +44,7 @@
     input_chat_history,
     incomplete_message,
     max_new_tokens = 10,
-    temperature = 0.1
   ) {
-    console.log(input_chat_history);
     return fetch("./chat-completion", {
       method: "post",
       headers: {
@@ -96,8 +100,17 @@
     let working_chat_history = structuredClone(chat_history);
 
     if(use_context){
-      working_chat_history[working_chat_history.length - 2].content = context_prompt_template.replace("<context>", text_context).replace("<prompt>", message);
+      let mapObj = {
+        "<context>": text_context,
+        "<prompt>": message,
+      };
+      let contexted_message = context_prompt_template.replace(/<context>|<prompt>/gi, function (matched) {
+        return mapObj[matched];
+      });
+
+      working_chat_history[working_chat_history.length - 2].content = contexted_message;
     }
+
     let last_message = chat_history[chat_history.length - 1];
     let last_message_working = working_chat_history[working_chat_history.length - 1];
 

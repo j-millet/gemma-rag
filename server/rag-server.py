@@ -66,6 +66,8 @@ def context_retrieval():
 
 @app.route("/open-session", methods=["POST"])
 def open_session():
+    if flask.session.get("user_id",None) is not None:
+        close_session()
     user_id = secrets.token_urlsafe(16)
     flask.session["user_id"] = user_id
     print(f"{user_id} open")
