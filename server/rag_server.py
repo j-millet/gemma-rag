@@ -42,8 +42,11 @@ def chat_completion():
     max_new_tokens = get_val(data,"max_new_tokens",10)
     incomplete_message = get_val(data,"incomplete_message",False)
     temperature = get_val(data,"temperature",0.1)
-
-    model_message,incomplete_message = model.make_prediction(chat_history,incomplete_message,max_new_tokens,temperature)
+    try:
+        model_message,incomplete_message = model.make_prediction(chat_history,incomplete_message,max_new_tokens,temperature)
+    except Exception as e:
+        return flask.jsonify({"error": f"Failure while generating model response."}), 500
+   
 
     return flask.jsonify({"response": model_message,"incomplete_message":incomplete_message})
 

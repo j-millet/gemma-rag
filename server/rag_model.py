@@ -63,7 +63,7 @@ class rag_model:
 
         input_ids = self.tokenizer(input_text, add_special_tokens=False,return_tensors="pt").to("cuda")
 
-        outputs = self.model.generate(**input_ids,max_new_tokens=max_new_tokens,temperature=temperature,do_sample=True)
+        outputs = self.model.generate(**input_ids,max_new_tokens=max_new_tokens,temperature=float(temperature),do_sample=True)
         text = self.tokenizer.decode(outputs[0])
 
         model_message = text.replace(input_text,"")

@@ -77,6 +77,9 @@
   }
 
   export async function sendMessage(message,use_context=true) {
+    let err_count=0;
+    let max_err_count=5;
+
     if (model_responding) {
       return;
     }
@@ -119,6 +122,18 @@
         extractCoreChatHistory(working_chat_history),
         !last_message.meta.finishedMessage
       )
+
+      if (model_response.error != null) {
+        console.error(model_response.error);
+        err_count++;
+        if (err_count >= max_err_count) {
+          model_responding = false;
+          return;
+        }
+        else {
+          continue;
+        }
+      }
 
       last_message.content += model_response.response;
       last_message.meta.finishedMessage = !model_response.incomplete_message;

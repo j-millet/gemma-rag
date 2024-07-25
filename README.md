@@ -1,14 +1,12 @@
 # Gemma-based, local chatbot with RAG functionality
 
-## Implemented for now
-* Backend server
-* Frontend basic chat
-* File uploads and RAG functionality for multiple connected users
-
 ## To run
+Prerequisites: python, npm, conda or other venv solution (not obligatory but highly encouraged)
 * Clone repo
+* Run ```pip install -r requirements.txt``` inside ```/server```
 * Run ```npm install && npm run build``` inside ```/client```
-* Run ```python rag-server.py``` inside ```/server```
+* Generate own secret key, change ```config-template.json``` and rename to ```config.json``` inside ```/server```
+* Run ```python rag_server.py``` inside ```/server```
 * (You may need to login to huggingface via [HuggingFace CLI](https://huggingface.co/docs/huggingface_hub/main/en/guides/cli) and be granted access to gemma if you haven't received it before.)
 
 ## Screenshots
