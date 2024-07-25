@@ -5,9 +5,6 @@
 * Frontend basic chat
 * File uploads and RAG functionality for multiple connected users
 
-## TODO
-* Improve context retrieval, so that it ommits irrelevant information.
-
 ## To run
 * Clone repo
 * Run ```npm install && npm run build``` inside ```/client```
